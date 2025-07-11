@@ -1,0 +1,11 @@
+{
+  "bastion_public_ip": "{{ tf_outputs.bastion_public_ip.value }}",
+  "jumpbox_ip": "{{ tf_outputs.jumpbox_private_ip.value }}",
+  "backend_vms_private_ips": {{ tf_outputs.backend_vms_private_ips.value | tojson }},
+  "bastion_key": "{{ tf_outputs.key_names.value["bastion"] }}",
+  "jumpbox_key": "{{ tf_outputs.key_names.value["jumpbox"] }}",
+  "medium_vm_key": "{{ tf_outputs.key_names.value["medium_vms"] }}",
+  "customer": "{{ customer }}",
+  "target_environment" : "{{ environment }}",
+  "vm_username" : "{{ tf_outputs.vm_username.value }}"
+}

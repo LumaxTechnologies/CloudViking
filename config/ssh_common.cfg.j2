@@ -1,0 +1,6 @@
+# SSH Config - Proxy
+Host proxy
+  HostName {{ proxy_public_ip }}
+  User {{ vm_username }}
+  IdentityFile {{ home }}/.ssh/id_{{ proxy_key }}
+  StrictHostKeyChecking accept-new

@@ -1,0 +1,40 @@
+customers:
+  acme-aws:
+    environments:
+    - common
+    - dev
+    - prod
+    customize:
+      dev:
+        active_backend_vms:
+        - frontend
+  acme-gcp:
+    environments:
+    - common
+    - dev
+    - prod
+    customize:
+      dev:
+        active_backend_vms:
+        - frontend
+  acme-azure:
+    environments:
+    - common
+    - dev
+    - prod
+    customize:
+      dev:
+        active_backend_vms:
+        - frontend
+  internal-aws:
+    environments:
+    - terraform_backend
+    provider: aws
+  internal-gcp:
+    environments:
+    - terraform_backend
+    provider: gcp
+  internal-azure:
+    environments:
+    - terraform_backend
+    provider: azure

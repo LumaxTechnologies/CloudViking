@@ -1,0 +1,30 @@
+all:
+  children:
+    bastion:
+      hosts:
+        bastion:
+          # ansible_ssh_host: {{ bastion_public_ip }}
+          ansible_user: {{ vm_username }}
+          private_ip: {{ jumpbox_ip }}
+    jumpbox:
+      hosts:
+        jumpbox:
+          # ansible_ssh_host: {{ jumpbox_ip }}
+          ansible_user: {{ vm_username }}
+          private_ip: {{ jumpbox_ip }}
+{% for host, ip in backend_vms_private_ips.items() %}
+    {{ host }}:
+      hosts:
+        {{ host }}:
+          # ansible_ssh_host: {{ ip }}
+          ansible_user: {{ vm_username }}
+          private_ip: {{ ip }}
+{% endfor %}
+    apps:
+      hosts:
+{% for host, ip in backend_vms_private_ips.items() %}
+        {{ host }}:
+          # ansible_ssh_host: {{ ip }}
+          ansible_user: {{ vm_username }}
+          private_ip: {{ ip }}
+{% endfor %}

@@ -1,0 +1,109 @@
+---
+- name: Install Apache NiFi
+  hosts: nifi
+  become: yes
+  vars:
+    nifi_version: "1.25.0"
+    nifi_user: "nifi"
+    nifi_group: "nifi"
+    install_dir: "/opt/nifi"
+    nifi_home: "/opt/nifi/nifi-{{ nifi_version }}"
+
+  tasks:
+
+  # - name: Install Java
+  #   apt:
+  #     name: openjdk-11-jdk
+  #     state: present
+
+  # - name: Create group and user
+  #   user:
+  #     name: "{{ nifi_user }}"
+  #     shell: /bin/bash
+  #     create_home: yes
+
+  # - name: Create install directory
+  #   file:
+  #     path: "{{ install_dir }}"
+  #     state: directory
+  #     owner: "{{ nifi_user }}"
+  #     group: "{{ nifi_group }}"
+
+  # - name: Download NiFi
+  #   get_url:
+  #     url: "https://archive.apache.org/dist/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.tar.gz"
+  #     dest: "/tmp/nifi.tar.gz"
+  #     mode: '0644'
+
+  # - name: Extract NiFi
+  #   unarchive:
+  #     src: "/tmp/nifi.tar.gz"
+  #     dest: "{{ install_dir }}"
+  #     remote_src: yes
+  #     owner: "{{ nifi_user }}"
+  #     group: "{{ nifi_group }}"
+
+  # - name: Set permissions
+  #   file:
+  #     path: "{{ nifi_home }}"
+  #     state: directory
+  #     recurse: yes
+  #     owner: "{{ nifi_user }}"
+  #     group: "{{ nifi_group }}"
+
+  # - name: Configure NiFi service
+  #   copy:
+  #     dest: /etc/systemd/system/nifi.service
+  #     content: |
+  #       [Unit]
+  #       Description=Apache NiFi
+  #       After=network.target
+
+  #       [Service]
+  #       Type=forking
+  #       User={{ nifi_user }}
+  #       Group={{ nifi_group }}
+  #       ExecStart={{ nifi_home }}/bin/nifi.sh start
+  #       ExecStop={{ nifi_home }}/bin/nifi.sh stop
+  #       Restart=on-abort
+
+  #       [Install]
+  #       WantedBy=multi-user.target
+
+  - name: Ensure HTTP host is set in nifi.properties
+    lineinfile:
+      path: /opt/nifi/conf/nifi.properties
+      regexp: '^nifi.web.http.host='
+      line: 'nifi.web.http.host=0.0.0.0'
+      create: yes
+      backup: yes
+
+  - name: Ensure HTTP port is set in nifi.properties
+    lineinfile:
+      path: /opt/nifi/conf/nifi.properties
+      regexp: '^nifi.web.http.port='
+      line: 'nifi.web.http.port=8080'
+      create: yes
+      backup: yes
+
+  - name: Comment out HTTPS and security config lines
+    replace:
+      path: /opt/nifi/conf/nifi.properties
+      regexp: '^((nifi.web.https|nifi.security)\..*)'
+      replace: '# \1'
+      backup: yes
+
+  # - name: Restart NiFi service
+  #   become: true
+  #   systemd:
+  #     name: nifi
+  #     state: restarted
+  #     enabled: yes
+
+
+  - name: Reload systemd and enable NiFi
+    systemd:
+      daemon_reload: yes
+      name: nifi
+      enabled: yes
+      state: started

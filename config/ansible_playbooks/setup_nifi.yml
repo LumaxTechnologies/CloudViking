@@ -1,0 +1,116 @@
+---
+- name: Install Apache NiFi on a new VM
+  hosts: nifi
+  become: yes
+
+  vars:
+    nifi_version: "1.19.1"
+    nifi_install_dir: "/opt/nifi"
+
+  tasks:
+    # - name: Update apt cache
+    #   apt:
+    #     update_cache: yes
+
+    # - name: Install Java (OpenJDK 11)
+    #   apt:
+    #     name: openjdk-11-jdk
+    #     state: present
+
+    # - name: Install unzip utility
+    #   ansible.builtin.package:
+    #     name: unzip
+    #     state: present
+      
+    # - name: Ensure /opt/nifi directory exists
+    #   ansible.builtin.file:
+    #     path: /opt/nifi
+    #     state: directory
+    #     owner: root
+    #     group: root
+    #     mode: '0755'
+
+    # - name: Download NiFi binary
+    #   get_url:
+    #     url: "https://archive.apache.org/dist/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip"
+    #     dest: "/tmp/nifi-{{ nifi_version }}-bin.zip"
+
+    # - name: Extract NiFi binary
+    #   unarchive:
+    #     src: "/tmp/nifi-{{ nifi_version }}-bin.zip"
+    #     dest: "{{ nifi_install_dir }}"
+    #     remote_src: yes
+
+    # - name: Create symbolic link for easier updates
+    #   file:
+    #     src: "{{ nifi_install_dir }}/nifi-{{ nifi_version }}"
+    #     dest: "{{ nifi_install_dir }}/current"
+    #     state: link
+
+    # - name: Configure NiFi to run as a service
+    #   copy:
+    #     dest: /etc/systemd/system/nifi.service
+    #     content: |
+    #       [Unit]
+    #       Description=Apache NiFi Dataflow Management
+    #       After=network.target
+
+    #       [Service]
+    #       Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+    #       ExecStart={{ nifi_install_dir }}/current/bin/nifi.sh run
+    #       ExecStop={{ nifi_install_dir }}/current/bin/nifi.sh stop
+    #       User=root
+    #       Group=root
+    #       Restart=on-failure
+    #       RestartSec=5s
+
+    #       [Install]
+    #       WantedBy=multi-user.target
+    #     owner: root
+    #     group: root
+    #     mode: '0644'
+
+    # - name: Reload systemd to recognize NiFi service
+    #   command: systemctl daemon-reload
+
+    # - name: Ensure HTTP host is set in nifi.properties
+    #   lineinfile:
+    #     path: /opt/nifi/nifi-{{ nifi_version }}/conf/nifi.properties
+    #     regexp: '^nifi.web.http.host='
+    #     line: 'nifi.web.http.host=0.0.0.0'
+    #     create: yes
+    #     backup: yes
+
+    # - name: Ensure HTTP port is set in nifi.properties
+    #   lineinfile:
+    #     path: /opt/nifi/nifi-{{ nifi_version }}/conf/nifi.properties
+    #     regexp: '^nifi.web.http.port='
+    #     line: 'nifi.web.http.port=8080'
+    #     create: yes
+    #     backup: yes
+
+    - name: Ensure Remote Input is set to Insecure in nifi.properties
+      lineinfile:
+        path: /opt/nifi/nifi-{{ nifi_version }}/conf/nifi.properties
+        regexp: '^nifi.remote.input.secure='
+        line: 'nifi.remote.input.secure=false'
+        create: yes
+        backup: yes
+
+    # - name: Comment out HTTPS and security config lines
+    #   replace:
+    #     path: /opt/nifi//nifi-{{ nifi_version }}/conf/nifi.properties
+    #     regexp: '^((nifi.web.https|nifi.security)\..*)'
+    #     replace: '# \1'
+    #     backup: yes
+
+    # - name: Enable and start NiFi service
+    #   systemd:
+    #     name: nifi
+    #     state: started
+    #     enabled: yes
+
+    # - name: Clean up downloaded files
+    #   file:
+    #     path: "/tmp/nifi-{{ nifi_version }}-bin.zip"
+    #     state: absent

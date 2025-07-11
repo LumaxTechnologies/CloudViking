@@ -1,0 +1,44 @@
+global
+    log /dev/log local0
+    maxconn 2048
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    retries 3
+    timeout connect 5s
+    timeout client  50s
+    timeout server  50s
+
+
+frontend snowflake_frontend
+    bind *:5432
+    mode tcp
+    default_backend snowflake_backend
+
+frontend http_in
+    bind *:80
+    mode http
+    default_backend default_service
+
+{% for path, target in load_balancer.items() %}
+    acl is_{{ target.target }} path_beg {{ path }}
+    use_backend backend_{{ target.target }} if is_{{ target.target }}
+{% endfor %}
+
+backend default_service
+    mode http
+    server frontend {{ backend_vm_private_ips['frontend'] }}:3000
+
+{% for path, target in load_balancer.items() %}
+backend backend_{{ target.target }}
+    mode http
+    server {{ target.target }} {{ backend_vm_private_ips[target.target] }}:{{ target.port }}
+{% endfor %}
+
+backend snowflake_backend
+    mode tcp
+    server pg1 {{ db_host }}:{{ db_port }} check

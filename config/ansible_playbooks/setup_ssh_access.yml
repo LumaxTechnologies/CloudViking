@@ -1,0 +1,34 @@
+---
+- name: Setup SSH key for GitHub access on remote host
+  hosts: frontend
+
+  tasks:
+    - name: Ensure ~/.ssh exists with correct permissions
+      file:
+        path: "{{ ansible_user }}/.ssh"
+        state: directory
+        mode: "0700"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy private SSH key from local to remote
+      copy:
+        src: "{{ local_private_key_path }}"
+        dest: "{{ remote_ssh_key_path }}"
+        mode: "0600"
+        remote_src: no  # <- This tells Ansible src is local
+
+
+    - name: Set correct owner on remote SSH key
+      file:
+        path: "{{ remote_ssh_key_path }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+
+    - name: Ensure GitHub is in known_hosts
+      known_hosts:
+        name: github.com
+        key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+        path: "~/.ssh/known_hosts"
+        state: present

@@ -1,0 +1,44 @@
+# Customer Name - will be used in prefix and 'Name' tag 
+# for cloud resources
+ClientName: {{ customer }}
+
+# name of sudoer on each cloud VM
+ansible_user: "{{ vm_username }}"
+
+# Local path of the SSH Key to reach Github
+local_private_key_path: "~/.ssh/id_github_pull"
+# Remote path
+remote_ssh_key_path: "~/.ssh/id_rsa"
+
+# Mapping of per-host repos to clone
+app_repos:
+  frontend:
+    - name: frontend
+      repo: LumaxTechnologies/SaaS-frontend.git
+      branch: main
+      ssh_config: github.com
+
+# Custom extra system packages to install per machine
+extra_packages: {}
+
+# Python apps to start
+python_apps_to_start:
+- api
+
+# FastAPI apps to start:
+fastapi_apps:
+- api
+
+# Port of the Frontend FastAPI
+api_port: 8080
+
+current_environment: {{ environment }}
+# current_environment: test
+# current_environment: staging
+# current_environment: production
+
+simple_url: test.com
+certbot_email: alice.bob@dev.com
+
+active_backend_vms:
+- frontend

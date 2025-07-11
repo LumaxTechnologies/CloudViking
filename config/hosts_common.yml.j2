@@ -1,0 +1,9 @@
+all:
+  children:
+    proxy:
+      hosts:
+        proxy:
+          # ansible_ssh_host: {{ proxy_public_ip }}
+          ansible_user: {{ vm_username }}
+          private_ip: {{ proxy_public_ip }}
+

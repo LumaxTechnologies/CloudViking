@@ -1,0 +1,21 @@
+# SSH Config - Proxy via Bastion
+Host bastion
+  HostName {{ bastion_public_ip }}
+  User {{ vm_username }}
+  IdentityFile {{ home }}/.ssh/id_{{ bastion_key }}
+  StrictHostKeyChecking accept-new
+
+Host jumpbox
+  HostName {{ jumpbox_ip }}
+  User {{ vm_username }}
+  IdentityFile {{ home }}/.ssh/id_{{ jumpbox_key }}
+  StrictHostKeyChecking accept-new
+  ProxyJump bastion
+{% for name, ip in backend_vms_private_ips.items() %}
+Host {{ name }}
+  HostName {{ ip }}
+  User {{ vm_username }}
+  IdentityFile {{ home }}/.ssh/id_{{ medium_vm_key }}
+  StrictHostKeyChecking accept-new
+  ProxyJump bastion
+{% endfor %}

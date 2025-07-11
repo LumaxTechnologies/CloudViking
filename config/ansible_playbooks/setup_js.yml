@@ -1,0 +1,40 @@
+---
+- name: Deploy a Python app on remote host
+  # hosts: analyzer,dispatcher,frontend,gatherer
+  hosts: frontend
+  become: no
+  vars:
+    app_folder: "/opt/apps"
+
+  tasks:
+
+    - name: Install Node.js 18.20.3 on Amazon Linux
+      become: yes
+      shell: |
+        curl -fsSL https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-x64.tar.xz -o /tmp/node-v18.20.3-linux-x64.tar.xz
+        mkdir -p /usr/local/lib/nodejs
+        tar -xJf /tmp/node-v18.20.3-linux-x64.tar.xz -C /usr/local/lib/nodejs
+        ln -sf /usr/local/lib/nodejs/node-v18.20.3-linux-x64/bin/node /usr/local/bin/node
+        ln -sf /usr/local/lib/nodejs/node-v18.20.3-linux-x64/bin/npm /usr/local/bin/npm
+        ln -sf /usr/local/lib/nodejs/node-v18.20.3-linux-x64/bin/npx /usr/local/bin/npx
+      args:
+        executable: /bin/bash
+
+    - name: Check Node.js version
+      command: node -v
+      register: node_version
+
+    - name: Show Node.js version
+      debug:
+        var: node_version.stdout
+
+    - name: Install Yarn via npm
+      become: yes
+      command: npm install -g yarn
+
+    - name: Ensure npm global bin is in profile
+      lineinfile:
+        path: /etc/profile.d/npm_global.sh
+        create: yes
+        line: 'export PATH=$PATH:$(npm config get prefix)/bin'
+        mode: '0755'

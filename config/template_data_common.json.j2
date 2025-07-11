@@ -1,0 +1,7 @@
+{
+  "proxy_public_ip": "{{ tf_outputs.proxy_public_ip.value }}",
+  "proxy_key": "{{ tf_outputs.key_names.value["proxy"] }}",
+  "customer": "{{ customer }}",
+  "target_environment" : "{{ environment }}",
+  "vm_username" : "{{ tf_outputs.vm_username.value }}"
+}

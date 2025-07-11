@@ -1,0 +1,46 @@
+# Customer Name - will be used in prefix and 'Name' tag 
+# for cloud resources
+ClientName: devops
+
+# name of sudoer on each cloud VM
+ansible_user: azureuser
+
+# Local path of the SSH Key to reach Github
+local_private_key_path: "~/.ssh/id_github_pull"
+# Remote path
+remote_ssh_key_path: "~/.ssh/id_rsa"
+
+# App folder path on Azure
+app_folder: /opt/apps
+
+# Mapping between app names and app folder on Azure
+app_names:
+  frontend: frontend
+  api: api
+
+# Mapping between app names and app repositories
+app_repositories:
+  frontend: LumaxTechnologies/SaaS-frontend.git
+
+# Mapping between app names and associated git project branch
+git_branch:
+  frontend: main
+  api: main
+
+# Mapping between app names and SSH configuration to use for git connection
+ssh_config:
+  frontend: github
+
+# Custom extra system packages to install per machine
+extra_packages: {}
+
+# Python apps to start
+python_apps_to_start: []
+
+current_environment: test
+# current_environment: test
+# current_environment: staging
+# current_environment: production
+
+simple_url: test.com
+certbot_email: alice.bob@dev.com

@@ -1,0 +1,29 @@
+---
+- name: Obtain Let's Encrypt SSL certificate
+  hosts: proxy
+  become: true
+
+  vars:
+    full_url: "{{ customer }}.{{ target_environment }}.{{ simple_url }}"
+
+  tasks:
+    - name: Generate SSL certificate with Certbot
+      command: certbot certonly --non-interactive --email {{ certbot_email }} --nginx -d {{ full_url }} --agree-tos
+
+    - name: Copy SSL certificate to /etc/ssl
+      copy:
+        src: "/etc/letsencrypt/live/{{ full_url }}/fullchain.pem"
+        dest: "/etc/ssl/{{ full_url }}.pem"
+        mode: '0644'
+        remote_src: true
+        # validate: "sudo certbot certificates | grep -q {{ full_url }}"
+      become: true
+
+    - name: Copy SSL private key to /etc/ssl
+      copy:
+        src: "/etc/letsencrypt/live/{{ full_url }}/privkey.pem"
+        dest: "/etc/ssl/{{ full_url }}.pem.key"
+        mode: '0600'
+        remote_src: true
+        # validate: "sudo certbot certificates | grep -q {{ full_url }}"
+      become: true

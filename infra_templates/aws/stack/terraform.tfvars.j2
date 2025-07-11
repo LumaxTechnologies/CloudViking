@@ -1,0 +1,113 @@
+# Set the name of the customer to prefix all resources
+customer             = "{{ customer }}"
+
+# Set the name of the environment to prefix all resources
+environment          = "{{ environment }}"
+
+# AWS region
+region               = "us-east-1"
+
+##########################################
+# NETWORK
+##########################################
+
+# VPC and subnets CIDRs
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidr   = "10.0.1.0/24"
+private_subnet_1_cidr  = "10.0.2.0/24"
+private_subnet_2_cidr  = "10.0.3.0/24"
+
+# Names of SSH Keys
+ssh_keys = {
+  bastion = {
+    name = "{{ customer }}"
+  }
+  jumpbox = {
+    name = "{{ customer }}"
+  }
+  medium_vms = {
+    name = "{{ customer }}"
+  }
+}
+
+# Local SSH Key folder (used to load the public key into AWS)
+ssh_keys_folder = "~/.ssh/"
+
+##########################################
+# VM
+##########################################
+
+# Set VM types
+bastion_type = "t3.micro"
+jumpbox_type = "t3.micro"
+
+# Set Private EC2 VMs for services
+medium_vms = [
+{% for vm in [
+  {"name": "ocr-stack", "instance_type": "t3.micro", "instance_profile": "db_access", "volume_type": "gp3", "volume_size": 30},
+  {"name": "nifi", "instance_type": "t3.micro", "instance_profile": "db_access", "volume_type": "gp3", "volume_size": 30},
+  {"name": "smb", "instance_type": "t3.micro", "instance_profile": "db_access", "volume_type": "gp3", "volume_size": 30},
+  {"name": "frontend", "instance_type": "t3.micro", "instance_profile": "db_access", "volume_type": "gp3", "volume_size": 30}
+] %}
+  {% if vm.name in active_backend_vms %}
+  {
+    name          = "{{ vm.name }}"
+    instance_type = "{{ vm.instance_type }}"
+    instance_profile = "{{ vm.instance_profile }}"
+    volume_type   = "{{ vm.volume_type }}"
+    volume_size   = {{ vm.volume_size }}
+    # private_ip = "10.0.0.10"
+  },
+  {% endif %}
+{% endfor %}
+]
+
+# AWS Secrets
+secrets = {}
+
+# Definition of instance profiles (EC2-based roles)
+instance_profiles = {
+  db_access = [
+    "db_credentials"
+  ]
+}
+
+jumpbox_instance_profile = "db_access"
+
+# Network rules for VMs
+network_rules = [
+  {
+    source      = "bastion"
+    destination = "jumpbox"
+    port        = 22
+    protocol    = "tcp"
+  },
+  {
+    source      = "jumpbox"
+    destination = "aurora"
+    port        = 5432
+    protocol    = "tcp"
+  },
+  {
+    source      = "apprunner"
+    destination = "ECR"
+    port        = 443
+    protocol    = "tcp"
+  }
+]
+
+##########################################
+# STORAGE
+##########################################
+
+# Map of S3 buckets
+s3_buckets = {
+}
+
+##########################################
+# DATABASE
+##########################################
+
+# username of main admin
+db_username = "controller"
+db_name = "postgres"

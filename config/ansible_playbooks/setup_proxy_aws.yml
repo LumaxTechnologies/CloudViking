@@ -1,0 +1,99 @@
+---
+- name: Install Nginx, Certbot and dependencies
+  hosts: proxy
+  become: true
+  tasks:
+    - name: Install Certbot and required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - nginx
+        - nginx-mod-stream
+        - certbot
+        - python3-certbot-nginx
+        - python3-certbot-dns-route53  # Replace with appropriate DNS plugin if needed
+
+    - name: Create SSL directory
+      file:
+        path: /etc/ssl
+        state: directory
+        mode: '0755'
+
+    - name: Start NGINX service
+      systemd:
+        name: nginx
+        state: started
+
+- name: Prepare nginx configuration
+  hosts: proxy
+  become: true
+  tasks:
+    - name: Remove default site config if present
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d/default.conf
+        state: absent
+
+    - name: Create folder for HTTP configs
+      ansible.builtin.file:
+        path: /etc/nginx/custom-sites
+        state: directory
+        mode: '0755'
+
+    - name: Create folder for TCP stream configs
+      ansible.builtin.file:
+        path: /etc/nginx/stream.d
+        state: directory
+        mode: '0755'
+
+    - name: Create base nginx config
+      ansible.builtin.copy:
+        dest: /etc/nginx/nginx.conf
+        content: |
+          load_module /usr/lib64/nginx/modules/ngx_stream_module.so;
+          worker_processes auto;
+          error_log /var/log/nginx/error.log info;
+          pid /run/nginx.pid;
+
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              include       /etc/nginx/mime.types;
+              default_type  application/octet-stream;
+              access_log    /var/log/nginx/access.log;
+              sendfile      on;
+              keepalive_timeout 65;
+              types_hash_max_size 2048;
+            types_hash_bucket_size 128;
+
+              server {
+                  listen 80;
+                  server_name {{ simple_url }};
+                  return 301 https://$host$request_uri;
+              }
+
+          # BEGIN FRONTEND ROUTING BLOCK
+
+          # END FRONTEND ROUTING BLOCK
+
+              include /etc/nginx/custom-sites/*.conf;
+          }
+
+          include /etc/nginx/streams/*.conf;
+
+          stream {
+              include /etc/nginx/stream.d/*.conf;
+          }
+
+    - name: Test nginx configuration
+      ansible.builtin.command: nginx -t
+      register: nginx_test
+      changed_when: false
+      failed_when: nginx_test.rc != 0
+
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

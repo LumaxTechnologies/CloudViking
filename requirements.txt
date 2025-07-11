@@ -1,0 +1,6 @@
+python-dotenv
+Click
+inquirerpy
+jinja2
+boto3
+ansible
