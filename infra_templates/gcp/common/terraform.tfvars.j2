@@ -1,0 +1,46 @@
+# GCP Common Infrastructure Variables
+# This file is a Jinja2 template that will be processed to generate terraform.tfvars
+
+customer = "{{ customer }}"
+environment = "{{ environment }}"
+project_id = "{{ project_id }}"
+region = "{{ region | default('us-central1') }}"
+zone = "{{ zone | default('us-central1-a') }}"
+
+# SSH Keys Configuration
+ssh_keys_folder = "{{ ssh_keys_folder | default('~/.ssh/') }}"
+ssh_keys = {
+  {% for key_name, key_config in ssh_keys.items() %}
+  "{{ key_name }}" = {
+    name = "{{ key_config.name }}"
+  }
+  {% endfor %}
+}
+
+# Proxy Configuration
+proxy_type = "{{ proxy_type | default('e2-micro') }}"
+
+# Network Configuration
+vpc_cidr = "{{ vpc_cidr | default('10.0.0.0/16') }}"
+public_subnet_cidr = "{{ public_subnet_cidr | default('10.0.1.0/24') }}"
+
+# Secrets and Instance Profiles (if needed)
+secrets = {
+  {% for secret_name, secret_config in secrets.items() %}
+  "{{ secret_name }}" = {
+    {% for key, value in secret_config.items() %}
+    "{{ key }}" = "{{ value }}"
+    {% endfor %}
+  }
+  {% endfor %}
+}
+
+instance_profiles = {
+  {% for profile_name, profile_config in instance_profiles.items() %}
+  "{{ profile_name }}" = {
+    {% for key, value in profile_config.items() %}
+    "{{ key }}" = "{{ value }}"
+    {% endfor %}
+  }
+  {% endfor %}
+} 

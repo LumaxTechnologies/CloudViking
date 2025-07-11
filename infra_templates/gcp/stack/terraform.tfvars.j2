@@ -1,0 +1,74 @@
+# GCP Stack Infrastructure Variables
+# This file is a Jinja2 template that will be processed to generate terraform.tfvars
+
+customer = "{{ customer }}"
+environment = "{{ environment }}"
+project_id = "{{ project_id }}"
+region = "{{ region | default('us-central1') }}"
+zone = "{{ zone | default('us-central1-a') }}"
+
+# SSH Keys Configuration
+ssh_keys_folder = "{{ ssh_keys_folder | default('~/.ssh/') }}"
+ssh_keys = {
+  {% for key_name, key_config in ssh_keys.items() %}
+  "{{ key_name }}" = {
+    name = "{{ key_config.name }}"
+  }
+  {% endfor %}
+}
+
+# Instance Types
+bastion_type = "{{ bastion_type | default('e2-micro') }}"
+jumpbox_type = "{{ jumpbox_type | default('e2-micro') }}"
+
+# Network Configuration
+vpc_cidr = "{{ vpc_cidr | default('10.0.0.0/16') }}"
+public_subnet_cidr = "{{ public_subnet_cidr | default('10.0.1.0/24') }}"
+private_subnet_1_cidr = "{{ private_subnet_1_cidr | default('10.0.2.0/24') }}"
+private_subnet_2_cidr = "{{ private_subnet_2_cidr | default('10.0.3.0/24') }}"
+
+# Medium VMs Configuration
+medium_vms = [
+  {% for vm in medium_vms %}
+  {
+    name = "{{ vm.name }}"
+    instance_type = "{{ vm.instance_type }}"
+    instance_profile = "{{ vm.instance_profile }}"
+    volume_type = "{{ vm.volume_type }}"
+    volume_size = {{ vm.volume_size }}
+  }
+  {% endfor %}
+]
+
+# Network Rules Configuration
+network_rules = [
+  {% for rule in network_rules %}
+  {
+    source = "{{ rule.source }}"
+    destination = "{{ rule.destination }}"
+    port = {{ rule.port }}
+    protocol = "{{ rule.protocol }}"
+  }
+  {% endfor %}
+]
+
+# Secrets and Instance Profiles (if needed)
+secrets = {
+  {% for secret_name, secret_config in secrets.items() %}
+  "{{ secret_name }}" = {
+    {% for key, value in secret_config.items() %}
+    "{{ key }}" = "{{ value }}"
+    {% endfor %}
+  }
+  {% endfor %}
+}
+
+instance_profiles = {
+  {% for profile_name, profile_config in instance_profiles.items() %}
+  "{{ profile_name }}" = {
+    {% for key, value in profile_config.items() %}
+    "{{ key }}" = "{{ value }}"
+    {% endfor %}
+  }
+  {% endfor %}
+} 
